@@ -208,8 +208,8 @@ class PGoApi:
         neighbors = getNeighbors(self._posf)
         return self.get_map_objects(latitude=position[0], longitude=position[1], since_timestamp_ms=[0]*len(neighbors), cell_id=neighbors).call()
     
-    def attempt_catch(self,encounter_id,spawn_point_guid): #Problem here... add 5 if you have master ball
-        for i in range(1,4): # Range 1...5 iff you have master ball `range(1,5)`
+    def attempt_catch(self,encounter_id,spawn_point_guid): #Problem here... add 4 if you have master ball
+        for i in range(1,3): # Range 1...4 iff you have master ball `range(1,4)`
             r = self.catch_pokemon(
                 normalized_reticle_size= 1.950,
                 pokeball = i,
@@ -266,7 +266,7 @@ class PGoApi:
                  capture_status = -1
                  while capture_status != 0 and capture_status != 3:
                      catch_attempt = self.attempt_catch(encounter_id,fort_id)
-                     capture_status = catch_attempt['status']
+                     capture_status = catch_attempt['status'] if catch_attempt is not None else None
                      if capture_status == 1:
                          self.log.debug("Caught Pokemon: : %s", catch_attempt)
                          self.log.info("Caught Pokemon:  %s", self.pokemon_names[str(resp['pokemon_data']['pokemon_id'])])
@@ -275,6 +275,8 @@ class PGoApi:
                      elif capture_status != 2:
                          self.log.debug("Failed Catch: : %s", catch_attempt)
                          self.log.info("Failed to catch Pokemon:  %s", self.pokemon_names[str(resp['pokemon_data']['pokemon_id'])])
+                         if capture_status is None:
+                             self.log.warn("No more Pokeballs")
                          return False
                      sleep(2) # If you want to make it faster, delete this line... would not recommend though
         except Exception as e:
@@ -292,7 +294,7 @@ class PGoApi:
             capture_status = -1
             while capture_status != 0 and capture_status != 3:
                 catch_attempt = self.attempt_catch(encounter_id,spawn_point_id)
-                capture_status = catch_attempt['status']
+                capture_status = catch_attempt['status'] if catch_attempt is not None else None
                 if capture_status == 1:
                     self.log.debug("Caught Pokemon: : %s", catch_attempt)
                     self.log.info("Caught Pokemon:  %s", self.pokemon_names[str(pokemon['pokemon_id'])])
@@ -301,6 +303,8 @@ class PGoApi:
                 elif capture_status != 2:
                     self.log.debug("Failed Catch: : %s", catch_attempt)
                     self.log.info("Failed to Catch Pokemon:  %s", self.pokemon_names[str(pokemon['pokemon_id'])])
+                    if capture_status is None:
+                        self.log.warn("No more Pokeballs")
                 return False
                 sleep(2) # If you want to make it faster, delete this line... would not recommend though
         return False
